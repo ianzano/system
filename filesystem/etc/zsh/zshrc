@@ -1,0 +1,26 @@
+alias vim=nvim
+alias yr="yay -Rcns"
+alias ys="yay -S"
+alias yq="yay -Ss"
+alias yy="yay -Syy"
+alias yu="yay -Syyu"
+alias yc="yay -Sc"
+
+path+=("$HOME/.config/composer/vendor/bin")
+
+source /repo/antigen.zsh
+
+antigen use oh-my-zsh
+
+antigen bundle git
+antigen bundle command-not-found
+
+antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle zsh-users/zsh-autosuggestions
+
+antigen theme bira
+#antigen theme kphoen
+
+antigen apply
+
+[ -z "$TMUX" ] && { tmux attach &> /dev/null || exec tmux new-session && exit;}
