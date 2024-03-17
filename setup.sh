@@ -50,7 +50,7 @@ fi
 
 # link AstroNvim
 sudo rm -rf $XDG/nvim
-sudo ln -s $REPO/AstroNvim $XDG/nvim
+ln -s $REPO/AstroNvim $XDG/nvim
 
 # link my AstroNvim configuration
 sudo rm -rf $REPO/AstroNvim/lua/user
@@ -67,6 +67,6 @@ else
 fi
 
 # link my tmux configuration
-sudo mkdir -p $XDG/tmux
+mkdir -p $XDG/tmux
 sudo rm -rf $XDG/tmux/tmux.conf
-sudo ln -s $REPO/system/filesystem/etc/tmux.conf $XDG/tmux/tmux.conf
+ln -s $REPO/system/filesystem/etc/tmux.conf $XDG/tmux/tmux.conf
