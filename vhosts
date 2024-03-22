@@ -1,0 +1,67 @@
+#!/usr/sbin/php
+<?php
+
+function fdir(...$dir) { return join(DIRECTORY_SEPARATOR, $dir); }
+
+$http = fdir("", "srv", "http", "");
+$output = fdir("", "etc", "httpd", "conf", "extra", "httpd-vhosts.conf");
+
+$suffix = ".local";
+
+$prepend = "<VirtualHost *:80>\n</VirtualHost>\n";
+
+$path_suffixes = [
+    "laravel" => fdir("project", "public"),
+    "diana" => fdir("project", "www")
+];
+
+$restart_cmd = "systemctl restart httpd";
+
+$stub = "
+<VirtualHost *:80>
+    DocumentRoot $http{documentRoot}
+    ServerName {dir}$suffix
+    ServerAlias www.{dir}$suffix {aliases}
+    ErrorLog \"/var/log/httpd/{dir}-error_log\"
+    CustomLog \"/var/log/httpd/{dir}-access_log\" common
+</VirtualHost>
+";
+
+$dirs = array_diff(scandir($http), [".", ".."]);
+
+$aliases = [];
+
+foreach($dirs as $dir) {
+    if(filetype($http . $dir) == "link")
+        $aliases[readlink($http . $dir)][] = $dir;
+}
+
+$result = $prepend;
+
+foreach($dirs as $dir) {
+    $vhost = $stub;
+    $type = filetype($http . $dir);
+
+    if($type != 'dir')
+        continue;
+
+    $vhost = str_replace(["{documentRoot}", "{dir}"], [
+        $dir . (array_key_exists($dir, $path_suffixes) ? DIRECTORY_SEPARATOR . $path_suffixes[$dir] : ""),
+        $dir
+    ], $vhost);
+
+    if(array_key_exists($dir, $aliases))
+        foreach($aliases[$dir] as $alias)
+            $vhost = str_replace("{aliases}", $alias . $suffix . " www." . $alias . $suffix . " {aliases}", $vhost);
+
+    $vhost = str_replace("{aliases}", "", $vhost);
+
+    $result .= $vhost;
+}
+
+file_put_contents($output, $result);
+
+echo $result;
+
+if(isset($restart_cmd) && $restart_cmd)
+    shell_exec($restart_cmd);
